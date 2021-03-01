@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+</head>
+<body>
+	<canvas id="mycanvas"></canvas>
+	<script>
+		var ctx = document.getElementById("mycanvas").getContext('2d')
+		var myChart = new Chart(ctx,{
+			type:'bar',
+			data:{
+				labels: ['a','b'],
+				datasets: [{
+					data: [2,5],
+					borderWidth: 2,
+				}]
+			},
+			options: {
+				scales: {
+					yAxes: [{
+						ticks: {
+							beginAtZero: true
+						}
+					}]
+				}
+			}
+			
+		})
+	</script>
+</body>
+</html>

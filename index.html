@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+	<style type="text/css">
+		@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300&display=swap');
+		@keyframes popup{
+			0%{margin-top:100px;opacity: 0;}
+			80%{margin-top:50px;opacity: 1;}
+		}
+
+		@keyframes zoom{
+			0%{transform:scale(0,0);}
+			80%{transform:scale(1.10,1.10);}
+			100%{transform:scale(1,1);}
+		}
+		body{
+			background-color: #F7F4FA;
+			font-family: 'Kanit', sans-serif;
+		}
+		.container{
+			display:grid;
+			grid-template-columns:65% auto;
+			grid-column-gap:0px;
+		}
+		.graph{
+			margin: 5%;
+			margin-top:80px;
+			padding: 10px;
+			width: 800px;
+			height: 500px;
+			border-radius:25px;
+			box-shadow:0px 0px 30px 0px #DDDDDD10;
+			background-color: #fff;
+			align-items: center;
+			cursor: crosshair;
+		}
+		.menu{
+			animation-name:popup;
+			animation-duration:3s;
+			float: left;
+			transition: all 0.5s ease;
+			position: relative;
+			width: 300px;
+			height: 500px;
+			padding: 10%;
+			margin-top:50px;
+			border-radius:25px;
+			box-shadow:0px 0px 30px 0px #DDDDDD10;
+			background-color: #fff;
+		}
+		.control h2{
+			transform:scale(0,0);
+			text-align:center;
+			font-size: 50pt;
+			user-select: none;
+		}
+		.zoom{
+			animation-name:zoom;
+			animation-duration: 0.5s;
+		}
+		.colums-control{
+			margin-top: 20px;
+			display:grid;
+			grid-template-columns:auto auto;
+		}
+		.colums-control button{
+			user-select: none;
+			width: 130px;
+			padding: 10px 25px;
+			margin: 5px;
+			border:1px solid transparent;
+			transition: all 0.5s ease;
+			color: #fff;
+			background:linear-gradient(#003399, #003366);
+			box-shadow:10px 0px 30px 0px #DDDDDD50;
+			border-radius:20px;
+			font-family: 'Kanit', sans-serif;
+			outline: none;
+		}
+		.colums-control button:hover{
+			opacity: 0.8;
+		}
+		.type_select{
+			padding: 10px 25px;
+			border-radius:20px;
+			outline: none;
+			border:1px solid transparent;
+			width: 80%;
+			margin-top: 10px;
+			margin-bottom: 25px;
+			overflow: hidden;
+			box-shadow:10px 0px 30px 0px #DDDDDD50;
+		}
+		.type_select select{
+			user-select: none;
+			width: 100%;
+			outline: none;
+			border:1px solid transparent;
+			font-family: 'Kanit', sans-serif;
+		}
+		h1{
+			font-size: 30pt;
+			user-select: none;
+			text-align: center;
+		}
+		.check_box{
+			cursor: pointer;
+			position:relative;
+			padding-left: 25px;
+			user-select: none;
+			width: 100%;
+			font-size: 14px;
+			margin-top: 20px;
+			margin-bottom: 60px;
+			left: 20px;
+			
+		}
+		.check_box input{
+			position: absolute;
+			opacity: 0;
+		}
+		.check_box span{
+			border-radius: 2px;
+			position: absolute;
+			background-color: #CCC;
+			width: 15px;
+			height: 15px;
+			left: 0;
+			bottom:3px;
+		}
+		.check_box span:after{
+			display: none;
+			content:"";
+			position: absolute;
+			width: 3px;
+			height: 8px;
+			top:2px;
+			left: 5px;
+			border:2px solid #fff;
+			border-width:0 2px 2px 0;
+			transform:rotate(40deg);
+		}
+		.check_box input:checked ~ span{
+			background-color: #2196F3;
+		}
+		.check_box input:checked ~ span:after{
+			display: block;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="graph">
+			<center>
+				<div id="myCanvas"></div>
+			</center>
+		</div>
+		<div class="menu">
+			<h2>hex</h2>
+
+			<div>
+				<div></div>
+				<div></div>	
+			</div>
+
+			<h2>ตำแหน่ง</h2>
+			
+			<div class="control">
+
+				<h2 id="status">0</h2>
+
+				<div class="type_select">
+					<select id="type">
+						<option value="1">ระยะทาง rm</option>
+						<option value="2">ระยะทาง km</option>
+					</select>
+				</div>
+				
+				
+				<label class="check_box">
+					จดจำค่าก่อนหน้า
+					<input type="checkbox" name="" value="remember" id="unit">
+					<span></span>
+
+				</label>
+				
+
+				<div class="colums-control">
+					<button onclick="change_status(-1,call_back)">พิกัดก่อนหน้า</button>
+					<button onclick="change_status(1,call_back)">พิกัดต่อไป</button>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<script>
+		var canvas = document.getElementById('myCanvas');
+
+		make_graph([],[])
+
+		setTimeout(function(){
+			document.getElementById("status").classList.add("zoom")
+			document.getElementById("status").style.transform="scale(1,1)"
+		},3000)
+
+		function make_graph(r,t){
+			let trace = {
+				r: r,
+
+				mode: 'markers',
+				name: 'radar',
+				type: 'scatterpolargl',
+				theta: t
+			}
+			let data = [trace]
+
+			let layout = {
+				title: '',
+				font: {size:15},
+				plot_bgcolor: 'rgb(223,223,223)',
+				angularaxis: {tick: 'rgb(253,253,253)'},
+				showlegend: false,
+				orientation: 0,
+				polar: {
+					radialaxis: {
+						visible: true,
+						range: [0,100]
+					}
+				},
+			}
+			Plotly.plot('myCanvas',data,layout)
+		}
+
+		function reset_graph(){
+			Plotly.deleteTraces("myCanvas", 0)
+			//
+		}
+
+		function call_back(value){
+			let unit = document.getElementById("unit").checked
+			let type = document.getElementById("type").value
+			document.getElementById("status").innerHTML=value[1]+1
+			r = value[0][0][0]
+			theta = value[0][1][1]
+			if(!unit){
+				reset_graph()
+			}
+			if(type==2){
+				r = value[0][0][1]
+			}
+			make_graph([r],[theta])
+			
+		}
+
+
+		//change_status(1,call_back)
+	</script>
+</body>
+</html>
