@@ -87,7 +87,10 @@ def plot_graph(action,callback):
 		state+= 1
 	elif action == -1 and state > 0:
 		state-= 1
-	callback.Call([convert_nm(state),state])
+	try:
+		callback.Call([convert_nm(state),state])
+	except:
+		print("error")
 
 def setBindings(browser):
 	print("add bindings")
@@ -97,6 +100,7 @@ def setBindings(browser):
 
 def main_cef(frame):
 	print("main")
+	print(len(data_set)-1)
 	global w, h
 	sys.excepthook = cef.ExceptHook
 	window_info = cef.WindowInfo(frame.winfo_id())
